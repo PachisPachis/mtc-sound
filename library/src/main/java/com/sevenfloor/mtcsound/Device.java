@@ -215,9 +215,18 @@ public class Device {
     private void addHandler(ParameterHandler handler, String name){
         handlers.put(name, handler);
     }
-
+    //We try to catch sound from all kind of GPS software in addition to the selected GPS app.
+    //It seems GPS mixing with FM radio doesn't work very well, but it occurs in the original version from 7floor also.
+    //Most probably some investigation and development required.
     private boolean shouldCheckPackageSound(String callerPackage) {
-        return state.gpsState.gpsMonitor && state.gpsState.gpsPackage.equals(callerPackage);
+        boolean value = false;
+        if (state.gpsState.gpsPackage.equals(callerPackage)
+                ||callerPackage.toLowerCase().contains("igo") || callerPackage.toLowerCase().contains("tomtom")
+                || callerPackage.toLowerCase().contains("waze") ||callerPackage.toLowerCase().contains("map")
+                ||callerPackage.toLowerCase().contains("sygic") || callerPackage.toLowerCase().contains("navi")){
+            value = true;
+        }
+        return state.gpsState.gpsMonitor && value;
     }
 
     public void showToast(String text) {
