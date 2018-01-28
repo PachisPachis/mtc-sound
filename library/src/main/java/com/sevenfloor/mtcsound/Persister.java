@@ -46,13 +46,27 @@ public class Persister {
             // update legacy av_lud setting, otherwise loudness will be off-sync with MTCManager
             if (entry.getKey() == state.inputMode.input) {
                 int actualLud = entry.getValue().loudnessOn ? 1 : 0;
-                android.provider.Settings.System.putInt(resolver, "av_lud", actualLud);
+                try{
+                    android.provider.Settings.System.putInt(resolver, "av_lud", actualLud);
+                }
+                catch(Exception e){
+                }
             }
         }
 
         // update legacy settings, otherwise they will be off-sync with MTCManager
-        android.provider.Settings.System.putString(resolver, "KeyBalance", String.format("%d,%d", state.balance.getValue() + 14, 14 - state.fader.getValue()));
-        android.provider.Settings.System.putString(resolver, "KeyBalanceMode", "0");
+        try{
+            android.provider.Settings.System.putString(resolver, "KeyBalance", String.format("%d,%d", state.balance.getValue() + 14, 14 - state.fader.getValue()));
+        }
+        catch(Exception e){
+        }
+        
+        try{
+            android.provider.Settings.System.putString(resolver, "KeyBalanceMode", "0");
+        }
+        catch(Exception e){
+        }
+        
     }
 
     private void readProfile(ContentResolver resolver, SoundProfile profile, String name) {
