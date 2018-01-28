@@ -8,5 +8,3 @@ Currently I fixed the following bugs present in my unit:
 2-GPS mixing with FM radio not working (fixed, some glitches now and then)
 
 3-Error/Warning upon startup (fixed, big thanks to DSA8310 who provided me the code)
-
-I will upload the pending commits the next days.
