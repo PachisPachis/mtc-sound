@@ -85,40 +85,48 @@ public class Module implements IXposedHookZygoteInit, IXposedHookLoadPackage {
     }
 
     // patch AudioManager to replace getParameters/setParameters
+    //Fix provided by DSA8310
+    private static final String MYPARAMS = "^(av_balance|av_channel|av_channel_enter|av_channel_exit|av_control_mode|av_eq_bass|av_eq_middle|av_eq_on|av_eq_treble|"+
+            "av_gain|av_gps_gain|av_gps_monitor|av_gps_ontop|av_gps_package|av_gps_switch|av_loudness|av_lud|av_mute|av_phone|av_phone_volume|av_volume|cfg_gps_altmix|"+
+            "cfg_gps_ontop|cfg_gps_phoneout|cfg_gsm_altinput|cfg_rec_mute|cfg_sound_profile_|cfg_sound_settings|cfg_subwoofer|cfg_volumerange|ctl_backview_active|ctl_backview_vol).*";
+    private static boolean isMine(String par) {
+        return par.matches(MYPARAMS);
+    }
+
     private void patchAudioManager() {
-
-        findAndHookMethod(AudioManager.class, "getParameters", String.class, new XC_MethodReplacement() {
-                    @Override
-                    protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                        try {
-                            String param = (String) methodHookParam.args[0];
-                            String result = getService().getParameters(param);
-                            if (param.startsWith("av_control_mode")) {
-                                logControlMode(result);
-                            }
-                            return result;
-                        } catch (RemoteException e) {
-                            XposedBridge.log("Can't call getParameters() on MtcSoundService due to " + e);
-                            return "";
+        
+        findAndHookMethod(AudioManager.class, "getParameters", String.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam methodHookParam) throws Throwable {
+                String param = (String) methodHookParam.args[0];
+                if (Module.isMine(param)) {
+                    String result;
+                    try {
+                        result = Module.getService().getParameters(param);
+                        if (param.startsWith("av_control_mode")) {
+                            Module.logControlMode(result);
                         }
+                    } catch (RemoteException e) {
+                        XposedBridge.log("Can't call getParameters() on MtcSoundService due to " + e);
+                        result = "";
                     }
+                    methodHookParam.setResult(result);
                 }
-        );
+            }
+        });
 
-        findAndHookMethod(AudioManager.class, "setParameters", String.class, new XC_MethodReplacement() {
-                    @Override
-                    protected Object replaceHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                        try {
-                            String param = (String) methodHookParam.args[0];
-                            getService().setParameters(param);
-                        } catch (RemoteException e) {
-                            XposedBridge.log("Can't call setParameters() on MtcSoundService due to " + e);
-                        }
-                        return null;
+        findAndHookMethod(AudioManager.class, "setParameters", String.class, new XC_MethodHook() {
+            protected void beforeHookedMethod(MethodHookParam methodHookParam) throws Throwable {
+                String param = (String) methodHookParam.args[0];
+                if (Module.isMine(param)) {
+                    try {
+                        Module.getService().setParameters(param);
+                    } catch (RemoteException e) {
+                        XposedBridge.log("Can't call setParameters() on MtcSoundService due to " + e);
                     }
+                    methodHookParam.setResult(null);
                 }
-        );
-
+            }
+        });
     }
 
     // patch MediaPlayer to let the Service know the start/stop/pause etc. events
