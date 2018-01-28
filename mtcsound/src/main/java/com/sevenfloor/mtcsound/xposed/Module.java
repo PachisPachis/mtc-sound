@@ -404,7 +404,7 @@ public class Module implements IXposedHookZygoteInit, IXposedHookLoadPackage {
         if (!"com.microntek.backview".equals(loadPackageParam.packageName))
             return;
 
-        findAndHookMethod("com.microntek.backview.BackViewActivity", loadPackageParam.classLoader, "onCreate",
+        findAndHookMethod("com.microntek.backview.MainActivity", loadPackageParam.classLoader, "onCreate",
                 Bundle.class,
                 new XC_MethodHook() {
                     @Override
@@ -414,7 +414,7 @@ public class Module implements IXposedHookZygoteInit, IXposedHookLoadPackage {
                 }
         );
 
-        findAndHookMethod("com.microntek.backview.BackViewActivity", loadPackageParam.classLoader, "onDestroy",
+        findAndHookMethod("com.microntek.backview.MainActivity", loadPackageParam.classLoader, "onDestroy",
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
